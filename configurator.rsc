@@ -1,4 +1,7 @@
 {
+:put ""
+:put "- Welcome to SSTP VPN CONFIGURATOR -"
+:put ""
 
 :local defaultRemoteNetwork "192.168.150.0/24";
 :put "Enter the network assigned to VPN clients (press enter to use default: $defaultRemoteNetwork): ";
@@ -61,7 +64,7 @@
 
     #### SCRIPT ###
     :put ""
-    :put "--- STARTING SSTP VPN CONFIGURATOR ---"
+    :put "--- STARTING CONFIGURATOR ---"
 
     # Enable DDNS
     :if ( [/ip cloud get ddns-enabled] = true ) do={
