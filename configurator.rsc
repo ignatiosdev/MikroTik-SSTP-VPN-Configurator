@@ -65,12 +65,12 @@
     :put ""
     :put "--- STARTING CONFIGURATOR ---"
 
-
-    # CREATE BACKUP   
-    :local backupName ("backup-before-sstp-configurator" . [/system clock get date] . "_" . [/system clock get time])
+    :local backupName ("before-vpn-configurator")
     :put "Creating backup..." 
     /system backup save name=$backupName
-    :put "Backup created with name: $backupName, use it to revert this script"
+    :put "[BACKUP] Backup created with name: $backupName, use it to revert this script"
+    :put ""
+    :put ""
 
     # Enable DDNS
     :if ( [/ip cloud get ddns-enabled] = true ) do={
@@ -81,47 +81,83 @@
         # Wait for cloud to be enabled
         :delay 10s
     }
+    :put ""
 
     # Get Cloud Address
     :local cloudAddress [/ip cloud get dns-name]
     :put "Cloud DNS Name: $cloudAddress"
+    :put ""
+    
+        # CREATE SSL CERTIFICATE
+    :put "Checking for existing certificates..."
 
-    # CREATE SSL CERTIFICATE
-    /certificate
-    add name=VPN_CA common-name=$cloudAddress country=$country state=$state locality=$locality organization=$organization key-usage=key-cert-sign,crl-sign
-    sign VPN_CA
-    add name=VPN_SERVER common-name=$cloudAddress country=$country state=$state locality=$locality organization=$organization key-usage=digital-signature,key-encipherment,tls-server
-    sign VPN_SERVER ca=VPN_CA
+    # Check if client and server certificates already exist
+    :local clientCert [/certificate find where name="SSTPCONFIGURATOR_CLIENTCA"]
+    :local serverCert [/certificate find where name="SSTPCONFIGURATOR_SERVERCA"]
+
+    # If no client certificate exists, it returns an empty array (no ID)
+    :if ([:len $clientCert] = 0) do={
+        :put "Client certificate does not exist. Creating new client certificate..."
+        /certificate 
+        add name=SSTPCONFIGURATOR_CLIENTCA common-name=$cloudAddress country=$country state=$state locality=$locality organization=$organization key-usage=key-cert-sign,crl-sign
+        sign SSTPCONFIGURATOR_CLIENTCA
+    } else={
+        :put "Client certificate already exists."
+    }
+
+    :delay 2s
+
+    # If no server certificate exists, it returns an empty array (no ID)
+    :if ([:len $serverCert] = 0) do={
+        :put "Server certificate does not exist. Creating new server certificate..."
+        /certificate 
+        add name=SSTPCONFIGURATOR_SERVERCA common-name=$cloudAddress country=$country state=$state locality=$locality organization=$organization key-usage=digital-signature,key-encipherment,tls-server
+        sign SSTPCONFIGURATOR_SERVERCA ca=SSTPCONFIGURATOR_CLIENTCA
+    } else={
+        :put "Server certificate already exists."
+    }
+
     :delay 10s
-    :put "SSL Certificates created successfully"
+    :put "SSL Certificates check complete."
+    :put ""
 
+
+    
     # CREATE IP POOL
     :local ipBase [:pick $remoteNetwork 0 ([:find $remoteNetwork "/"] - 1)]
     :local ipRange ($ipBase . "2-" . $ipBase . "254")
     /ip pool add name=vpn-pool ranges=$ipRange
     :put "VPN IP Pool created successfully"
+    :put ""
 
     # CREATE VPN PROFILE
     /ppp profile add name=vpn-profile local-address=($ipBase . "1") remote-address=vpn-pool
     :put "VPN Profile created successfully"
+    :put ""
 
     # ENABLE SSTP VPN
-    /interface sstp-server server set enabled=yes certificate=VPN_SERVER default-profile=vpn-profile tls-version=only-1.2 port=$vpnPort
+    /interface sstp-server server set enabled=yes certificate=SSTPCONFIGURATOR_SERVERCA default-profile=vpn-profile tls-version=only-1.2 port=$vpnPort
     :put "SSTP VPN enabled successfully on port $vpnPort"
+    :put ""
 
     # CREATE VPN USER
     /ppp secret add name=$vpnUsername password=$vpnPassword profile=vpn-profile
     :put "VPN User created successfully"
+    :put ""
 
     # CREATE MASQUERADE RULE FOR VPN
     /ip firewall nat add chain=srcnat action=masquerade src-address=$remoteNetwork
     :put "Masquerade rule for VPN created successfully"
+    :put ""
 
     # CREATE FIREWALL FILTER INPUT RULE
     /ip firewall filter add chain=input action=accept protocol=tcp dst-port=$vpnPort place-before=3
+    :put ""
 
     # EXPORT CLIENT CERTIFICATE
-    /certificate export-certificate VPN_CA
+    /certificate export-certificate SSTPCONFIGURATOR_CLIENTCA
+    :put "Exported client certificate"
+    :put ""
 
     :put ""
     :put ""
