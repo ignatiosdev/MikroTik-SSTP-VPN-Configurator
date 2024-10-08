@@ -1,66 +1,65 @@
 {
-:put ""
-:put "- Welcome to SSTP VPN CONFIGURATOR -"
-:put ""
+    :put ""
+    :put "- Welcome to SSTP VPN CONFIGURATOR -"
+    :put ""
 
-:local defaultRemoteNetwork "192.168.150.0/24";
-:put "Enter the network assigned to VPN clients (press enter to use default: $defaultRemoteNetwork): ";
-:local input1 do={:return};
-:local remoteNetwork [$input1];
-:if ([:len $remoteNetwork] = 0) do={
-    :set remoteNetwork $defaultRemoteNetwork;
-}
+    :local defaultRemoteNetwork "192.168.150.0/24";
+    :put "Enter the network assigned to VPN clients (press enter to use default: $defaultRemoteNetwork): ";
+    :local input1 do={:return};
+    :local remoteNetwork [$input1];
+    :if ([:len $remoteNetwork] = 0) do={
+        :set remoteNetwork $defaultRemoteNetwork;
+    }
 
-:local defaultVpnPort "443";
-:put "Enter the VPN port (press enter to use default: $defaultVpnPort): ";
-:local input2 do={:return};
-:local vpnPort [$input2];
-:if ([:len $vpnPort] = 0) do={
-    :set vpnPort $defaultVpnPort;
-}
+    :local defaultVpnPort "443";
+    :put "Enter the VPN port (press enter to use default: $defaultVpnPort): ";
+    :local input2 do={:return};
+    :local vpnPort [$input2];
+    :if ([:len $vpnPort] = 0) do={
+        :set vpnPort $defaultVpnPort;
+    }
 
-:local vpnUsername;
-:while ([:typeof $vpnUsername] = "nothing" || [:len $vpnUsername] = 0) do={
-    :put "Enter the VPN username: ";
-    :local input3 do={:return};
-    :set vpnUsername [$input3];
-}
+    :local vpnUsername;
+    :while ([:typeof $vpnUsername] = "nothing" || [:len $vpnUsername] = 0) do={
+        :put "Enter the VPN username: ";
+        :local input3 do={:return};
+        :set vpnUsername [$input3];
+    }
 
-:local vpnPassword;
-:while ([:typeof $vpnPassword] = "nothing" || [:len $vpnPassword] = 0) do={
-    :put "Enter the VPN password: ";
-    :local input4 do={:return};
-    :set vpnPassword [$input4];
-}
+    :local vpnPassword;
+    :while ([:typeof $vpnPassword] = "nothing" || [:len $vpnPassword] = 0) do={
+        :put "Enter the VPN password: ";
+        :local input4 do={:return};
+        :set vpnPassword [$input4];
+    }
 
-:local country;
-:while ([:typeof $country] = "nothing" || [:len $country] = 0) do={
-    :put "Enter the country for SSL certificate (e.g., US): ";
-    :local input5 do={:return};
-    :set country [$input5];
-}
+    :local country;
+    :while ([:typeof $country] = "nothing" || [:len $country] = 0) do={
+        :put "Enter the country for SSL certificate (e.g., US): ";
+        :local input5 do={:return};
+        :set country [$input5];
+    }
 
-:local state;
-:while ([:typeof $state] = "nothing" || [:len $state] = 0) do={
-    :put "Enter the state for SSL certificate (e.g., California): ";
-    :local input6 do={:return};
-    :set state [$input6];
-}
+    :local state;
+    :while ([:typeof $state] = "nothing" || [:len $state] = 0) do={
+        :put "Enter the state for SSL certificate (e.g., California): ";
+        :local input6 do={:return};
+        :set state [$input6];
+    }
 
-:local locality;
-:while ([:typeof $locality] = "nothing" || [:len $locality] = 0) do={
-    :put "Enter the locality for SSL certificate (e.g., San Francisco): ";
-    :local input7 do={:return};
-    :set locality [$input7];
-}
+    :local locality;
+    :while ([:typeof $locality] = "nothing" || [:len $locality] = 0) do={
+        :put "Enter the locality for SSL certificate (e.g., San Francisco): ";
+        :local input7 do={:return};
+        :set locality [$input7];
+    }
 
-:local organization;
-:while ([:typeof $organization] = "nothing" || [:len $organization] = 0) do={
-    :put "Enter the organization for SSL certificate (e.g., Github): ";
-    :local input8 do={:return};
-    :set organization [$input8];
-}
-
+    :local organization;
+    :while ([:typeof $organization] = "nothing" || [:len $organization] = 0) do={
+        :put "Enter the organization for SSL certificate (e.g., Github): ";
+        :local input8 do={:return};
+        :set organization [$input8];
+    }
 
     #### SCRIPT ###
     :put ""
@@ -100,8 +99,8 @@
     :put "VPN Profile created successfully"
 
     # ENABLE SSTP VPN
-    /interface sstp-server server set enabled=yes certificate=VPN_SERVER default-profile=vpn-profile tls-version=only-1.2
-    :put "SSTP VPN enabled successfully"
+    /interface sstp-server server set enabled=yes certificate=VPN_SERVER default-profile=vpn-profile tls-version=only-1.2 port=$vpnPort
+    :put "SSTP VPN enabled successfully on port $vpnPort"
 
     # CREATE VPN USER
     /ppp secret add name=$vpnUsername password=$vpnPassword profile=vpn-profile
@@ -118,8 +117,13 @@
     /certificate export-certificate VPN_CA
 
     :put ""
+    :put ""
+    :put ""
+    :put ""
+    :put ""
+    :put ""
     :put "[SUCCESS] SSTP VPN CONFIGURED"
     :put "The client certificate is waiting in the files section for you to download"
     :put ""
-    :put "- github.com/cattalurdai -"
+    :put "- github.com/ignatiosdev -"
 }
