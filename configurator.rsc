@@ -65,6 +65,13 @@
     :put ""
     :put "--- STARTING CONFIGURATOR ---"
 
+
+    # CREATE BACKUP   
+    :local backupName ("backup-before-sstp-configurator" . [/system clock get date] . "_" . [/system clock get time])
+    :put "Creating backup..." 
+    /system backup save name=$backupName
+    :put "Backup created with name: $backupName, use it to revert this script"
+
     # Enable DDNS
     :if ( [/ip cloud get ddns-enabled] = true ) do={
         :put "DDNS already enabled"
