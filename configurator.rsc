@@ -151,7 +151,7 @@
     :put ""
 
     # CREATE FIREWALL FILTER INPUT RULE
-    /ip firewall filter add chain=input action=accept protocol=tcp dst-port=$vpnPort place-before=3
+    /ip firewall filter add chain=input action=accept protocol=tcp dst-port=$vpnPort 
     :put ""
 
     # EXPORT CLIENT CERTIFICATE
