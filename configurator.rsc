@@ -4,7 +4,7 @@
     :put ""
 
     :local defaultRemoteNetwork "192.168.150.0/24";
-    :put "Enter the network assigned to VPN clients (press enter to use default: $defaultRemoteNetwork): ";
+    :put "[REMOTE_NETWORK] Enter the network assigned to VPN clients (press ENTER to skip and use: $defaultRemoteNetwork): ";
     :local input1 do={:return};
     :local remoteNetwork [$input1];
     :if ([:len $remoteNetwork] = 0) do={
@@ -12,7 +12,7 @@
     }
 
     :local defaultVpnPort "443";
-    :put "Enter the VPN port (press enter to use default: $defaultVpnPort): ";
+    :put "[VPN_PORT] Enter the VPN port (press ENTER to skip and use: $defaultVpnPort) ";
     :local input2 do={:return};
     :local vpnPort [$input2];
     :if ([:len $vpnPort] = 0) do={
@@ -21,52 +21,55 @@
 
     :local vpnUsername;
     :while ([:typeof $vpnUsername] = "nothing" || [:len $vpnUsername] = 0) do={
-        :put "Enter the VPN username: ";
+        :put "[VPN_USERNAME] Enter the VPN username: ";
         :local input3 do={:return};
         :set vpnUsername [$input3];
     }
 
     :local vpnPassword;
     :while ([:typeof $vpnPassword] = "nothing" || [:len $vpnPassword] = 0) do={
-        :put "Enter the VPN password: ";
+        :put "[VPN_PASSWORD] Enter the VPN password [VPN_PASSWORD]: ";
         :local input4 do={:return};
         :set vpnPassword [$input4];
     }
 
     :local country;
     :while ([:typeof $country] = "nothing" || [:len $country] = 0) do={
-        :put "Enter the country for SSL certificate (e.g., US): ";
+        :put "[SSL_COUNTRY] Enter the country for SSL certificate (e.g., US): ";
         :local input5 do={:return};
         :set country [$input5];
     }
 
     :local state;
     :while ([:typeof $state] = "nothing" || [:len $state] = 0) do={
-        :put "Enter the state for SSL certificate (e.g., California): ";
+        :put "[SSL_STATE] Enter the state for SSL certificate (e.g., California): ";
         :local input6 do={:return};
         :set state [$input6];
     }
 
     :local locality;
     :while ([:typeof $locality] = "nothing" || [:len $locality] = 0) do={
-        :put "Enter the locality for SSL certificate (e.g., San Francisco): ";
+        :put "[SSL_LOCALITY] Enter the locality for SSL certificate (e.g., San Francisco): ";
         :local input7 do={:return};
         :set locality [$input7];
     }
 
     :local organization;
-    :while ([:typeof $organization] = "nothing" || [:len $organization] = 0) do={
-        :put "Enter the organization for SSL certificate (e.g., Github): ";
-        :local input8 do={:return};
-        :set organization [$input8];
+    :put "[SSL_ORG] Enter the organization for SSL certificate (Press enter to skip): ";
+    :local input8 do={:return};
+    :if ([:len $input8] > 0) do={
+        :set organization $input8;
+    } else={
+        :set organization "";  
     }
+
 
     #### SCRIPT ###
     :put ""
     :put "--- STARTING CONFIGURATOR ---"
-
+    
     :local backupName ("before-vpn-configurator")
-    :put "Creating backup..." 
+    :put "Creating backup..."
     /system backup save name=$backupName
     :put "[BACKUP] Backup created with name: $backupName, use it to revert this script"
     :put ""
@@ -121,8 +124,6 @@
     :put "SSL Certificates check complete."
     :put ""
 
-
-    
     # CREATE IP POOL
     :local ipBase [:pick $remoteNetwork 0 ([:find $remoteNetwork "/"] - 1)]
     :local ipRange ($ipBase . "2-" . $ipBase . "254")
@@ -152,6 +153,7 @@
 
     # CREATE FIREWALL FILTER INPUT RULE
     /ip firewall filter add chain=input action=accept protocol=tcp dst-port=$vpnPort 
+    :put "Firewall filter rule created successfully"
     :put ""
 
     # EXPORT CLIENT CERTIFICATE
@@ -165,8 +167,8 @@
     :put ""
     :put ""
     :put ""
-    :put "[SUCCESS] SSTP VPN CONFIGURED"
-    :put "The client certificate is waiting in the files section for you to download"
+    :put "[SUCCESS] SSTP VPN CONFIGURED [SUCCESSFUL_CONFIG]"
+    :put "The client certificate is waiting in the files section for you to download "
     :put ""
     :put "- github.com/ignatiosdev -"
 }
